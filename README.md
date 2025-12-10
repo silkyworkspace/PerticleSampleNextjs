@@ -43,7 +43,7 @@ const hue = Math.random() * 60 + 280; // 色（280=ピンク, 160=シアン）
 - Canvas API
 - React Hooks (useRef, useEffect)
 
-## 📖 仕組み
+## 仕組み
 
 1. **Z座標で奥行き管理** - 大きい値=奥、小さい値=手前
 2. **遠近法で2D投影** - `scale = 画面幅 / z座標`
