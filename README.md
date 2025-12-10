@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.jsでパーティクルアニメーションのサンプルです
 
-## Getting Started
+## 原理
 
-First, run the development server:
+1. **Z座標で奥行きを表現** - 数値が大きい = 奥、小さい = 手前
+2. **遠近法で2D位置を計算** - 奥のものは小さく中心寄り、手前は大きく端寄り
+3. **毎フレーム更新して動かす** - Z座標を減らす = 手前に近づく
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## もう少し詳しく
+
+### ステップ1: 3D空間の表現
+```
+パーティクル = { x: ?, y: ?, z: 1000 }
+               奥行き ↑
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### ステップ2: 遠近法で画面に投影
+```javascript
+scale = 画面幅 / z座標
+// z が大きい（奥）→ scale 小さい → 中心近く
+// z が小さい（手前）→ scale 大きい → 端に広がる
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+x = 中心X + cos(角度) × scale × 100
+y = 中心Y + sin(角度) × scale × 100
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**イメージ:**
+```
+奥 (z=1000) → ・     小さい点が中心近く
+↓
+↓ (z減っていく)
+↓
+手前 (z=10) → ━━━   大きい線が端に
+```
 
-## Learn More
+### ステップ3: アニメーション
+```javascript
+毎フレーム:
+  1. z を減らす (z -= speed)  // 手前に移動
+  2. 新しい位置を計算
+  3. 前の位置から線を引く   // 軌跡になる
+  4. z <= 0 なら奥にリセット  // 無限ループ
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 💡 数学的には
 
-## Deploy on Vercel
+**遠近法（透視投影）の公式**
+```
+2D座標 = 3D座標 × (定数 / 奥行き)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+この1行で3D風に見せています！
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## まとめ
+
+**「Z座標を減らしながら、遠近法で位置を計算して描画」**
